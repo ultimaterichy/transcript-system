@@ -10,7 +10,7 @@ const axios = require('axios')
 const KEY = 'WeqAVvJDm35b62Uy4ZvU52K6SDBF0R0H1633465002'
 
 
-const senderMail = "solomongalleh@yahoo.com";
+const senderMail = "richarddanladi200@yahoo.com";
 
 const emailTransporter = nodemailer.createTransport({
     host: 'smtp.mail.yahoo.com',
@@ -19,7 +19,7 @@ const emailTransporter = nodemailer.createTransport({
     secure: false,
     auth: {
         user: senderMail,
-        pass: 'agryjqmqyqnvaqya'
+        pass: 'rvxahkbqinxyvkxk'
     },
     logger: true 
 });
