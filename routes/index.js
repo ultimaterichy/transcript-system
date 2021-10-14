@@ -29,6 +29,7 @@ router.get('/', (req, res) => {
 });
 
 router.post('/send-transcript', (req, res) => {
+  var user = req.body.user;
   let mailOptions = {
     from: senderMail,
     to: req.body.receiver,
@@ -49,7 +50,7 @@ router.post('/send-transcript', (req, res) => {
       // send sms
       var smsData = JSON.stringify({
         'username': 'sandbox',
-        'to': '+2349052478455',
+        'to': user,
         'message': 'Transcript forwarded successfully'
       });
 
