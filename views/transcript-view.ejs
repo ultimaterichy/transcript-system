@@ -86,7 +86,7 @@
                 </div>
                 <input type="text" style="display: none;" id="receiver" value="<%= transcripts.receiver %>">
                 <input type="text" style="display: none;" id="email" value="<%= transcripts.user.email %>" />
-                <input type="text" style="display: none;" id="phone" value="<%= transcripts.phone %>" />
+                <input type="text" style="display: none;" id="phone" value="<%= phone %>" />
                 <% if (error != null) { %>
                     <div class="alert alert-danger"><%= error %> </div>
                 <% } else if(success != null) { %>
@@ -261,6 +261,7 @@
                     alert(message);
                     // send
                     let rec = $('#receiver').val();
+                    console.log(document.getElementById('phone').value)
                     $.post("/send-transcript",
                     {
                         receiver: rec,

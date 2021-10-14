@@ -30,16 +30,18 @@ router.get('/', (req, res) => {
 
 router.post('/send-transcript', (req, res) => {
   var user = req.body.user;
+  console.log(user);
   let mailOptions = {
     from: senderMail,
     to: req.body.receiver,
     subject: 'Transcript',
-    attachments: [
-      {
-        filename: 'transcript.pdf',
-        path: req.body.file
-      }
-    ]
+    // attachments: [
+    //   {
+    //     filename: 'transcript.pdf',
+    //     path: req.body.file
+    //   }
+    // ]
+    text: "Hello"
   }
 
   emailTransporter.sendMail(mailOptions, function(error, info){
@@ -166,8 +168,10 @@ router.post('/add-transcript', (req, res) => {
             // load course
             Course.getAll((err, result) => {
               if(err == null){
+                console.log("Done...");
                 res.render('add-transcript', { title: 'Express', error: null, success: 'Operation was successful', courses: result, sessions: sessions });
               } else{
+
                 res.render('add-transcript', { title: 'Express', error: null, success: 'Operation was successful', courses: [], sessions: sessions });
               }
             })
@@ -212,7 +216,7 @@ router.post('/get-transcript', (req, res) => {
       // get transcript
       MainApp.getTranscript(req.body.publicKey, req.body.institutionAddress).then(data => {
         // res.send(data);
-        // console.log(result.phone);
+        console.log(result.phone);
         res.render('transcript-view', { title: 'Express', error: null, success: null, transcripts: data, phone: result.phone });
       }).catch(err => {
         console.log(err)
