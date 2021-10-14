@@ -25,7 +25,7 @@ const emailTransporter = nodemailer.createTransport({
 });
 
 router.get('/', (req, res) => {
-  res.redirect('/add-student');
+  res.render('add-student', { title: 'Express', error: null, success: null });
 });
 
 router.post('/send-transcript', (req, res) => {
