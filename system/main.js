@@ -1,4 +1,4 @@
-const Tx = require('ethereumjs-tx')
+
 const Web3 = require('web3');
 const Provider = require('@truffle/hdwallet-provider');
 // const url = 'https://goerli.infura.io/v3/4a0069358ad94ee5952e5aa45a452404';
