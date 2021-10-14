@@ -1,6 +1,6 @@
 module.exports = {
-    HOST: "sql113.epizy.com",
-    USER: "epiz_30063885",
-    PASSWORD: "081infinity",
-    DB: "epiz_30063885_transcr"
+    HOST: "ql11.freemysqlhosting.net:3306",
+    USER: "sql11444322",
+    PASSWORD: "L7d4GelWax",
+    DB: "sql11444322"
 };
