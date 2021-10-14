@@ -105,5 +105,5 @@ MainApp = {
     }
 }
 
-// MainApp.loadContracts();
+MainApp.loadContracts();
 module.exports = MainApp;
