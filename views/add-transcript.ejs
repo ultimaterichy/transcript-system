@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <title>Transcript System</title>
+  </head>
+  <body>
+   <!-- Nav As a heading -->
+    <nav class="navbar navbar-dark" style="background-color: #5400FF; color: white;">
+        <span class="navbar-brand mb-0 h1">Transcript System</span>
+    </nav>
+
+
+    <!-- Main body -->
+
+
+    <div class="container">
+        <div class="row justify-content-center mt-4 py-4">
+            <div class="col col-md-6">
+                <div class="text-center mb-4">
+                    <h2>Add Record</h2>
+                </div>
+                <% if (error != null) { %>
+                    <div class="alert alert-danger"><%= error %> </div>
+                <% } else if(success != null) { %>
+                    <div class="alert alert-success"><%= success %> </div>
+                <% } %>
+                
+                <form method="POST" action="/add-transcript">
+                    <div class="form-group align-items-end w-100">
+                        <label for="session">Session</label>
+                        <select name="session" class="form-control w-25 float-right mb-3" >
+                            <% for( let index = 0; index < sessions.length; index++ ) { %>
+                                <option value="<%= sessions[index] %> "><%= sessions[index] %> </option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="matric" class="form-control" placeholder="Enter Matriculation number", required>
+                    </div>
+                    <div class="form-group">
+                        <label for="course">Course</label>
+                        <select name="course" class="form-control" >
+                            <% for( let index = 0; index < courses.length; index++ ) { %>
+                                <option value="<%= courses[index].id %> "><%= courses[index].code %> </option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="form-group row justify-content-between">
+                        <div class="col col-md-6">
+                            <label for="grade">Grade</label>
+                            <select name="grade" class="form-control" >
+                                <% for( let index = 1; index < 6; index++ ) { %>
+                                    <option value="<%= index %> "><%= index %></option>
+                                <% } %>
+                            </select>
+                        </div>
+                        <div class="col col-md-6">
+                            <label for="remark">Remark</label>
+                            <select name="remark" class="form-control" >
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                                <option value="F">F</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary inline-block w-100">Add Record</button>
+                  </form>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- Main body ends -->
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    
+  </body>
+</html>

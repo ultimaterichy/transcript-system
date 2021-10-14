@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <title>Add Student</title>
+  </head>
+  <body>
+   <!-- Nav As a heading -->
+    <nav class="navbar navbar-dark" style="background-color: #5400FF; color: white;">
+        <span class="navbar-brand mb-0 h1">Transcript System</span>
+    </nav>
+
+
+    <!-- Main body -->
+
+
+    <div class="container">
+        <div class="row justify-content-center mt-4 py-4">
+            <div class="col col-md-6">
+                <div class="text-center mb-4">
+                    <h2>New Student</h2>
+                </div>
+                <form onsubmit="">
+                    <div class="form-group">
+                        <input type="text" id="name" class="form-control" placeholder="Enter Name">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="matric" class="form-control" placeholder="Enter Matriculation number">
+                    </div>
+                    <div class="form-group">
+                      <input type="email" id="email" class="form-control" placeholder="Enter email">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="faculty" class="form-control" placeholder="Enter Faculty">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="department" class="form-control" placeholder="Enter Departemnt">
+                    </div>
+                    <button type="submit" class="btn btn-primary inline-block w-100">Add Student</button>
+                  </form>
+                  <button onclick="MainApp.createStudent(); return false;">Hello</button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- Main body ends -->
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script> -->
+    <script src="vendor/web3/dist/web3.min.js"></script>
+    <script src="main.js"></script>
+    <script>
+        MainApp.loadWeb3();
+        web3.utils.toBN(75745458767543);
+        // add tobignumber to web3
+        web3.utils.__proto__.toBigNumber = function(number) {
+            return web3.utils.toBN(number);
+        }
+    </script>
+    <!-- <script src="vendor/web3/dist/web3.js.map"></script> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.5.2/web3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.5.2/web3.min.js.map"></script> -->
+    <script src="vendor/truffle-contract/dist/truffle-contract.js"></script>
+    <!-- <script src="main.js"></script> -->
+  </body>
+</html>
