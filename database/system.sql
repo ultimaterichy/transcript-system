@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS `students` (
   id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
   email varchar(255) NOT NULL,
   name varchar(255) NOT NULL,
+  phone varchar(20) NOT NULL,
   matric varchar(255) NOT NULL,
   department varchar(255) NOT NULL,
   faculty varchar(255) NOT NULL,
