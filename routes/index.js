@@ -21,7 +21,6 @@ const emailTransporter = nodemailer.createTransport({
         user: senderMail,
         pass: 'agryjqmqyqnvaqya'
     },
-    debug: false,
     logger: true 
 });
 
