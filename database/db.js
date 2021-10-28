@@ -46,9 +46,9 @@ connection.connect(error => {
   //   ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
   // `;
 
-let add = `
-  insert into courses (title, code, credit_load) values ('Intro to computer 1', 'CMP111', 2), ('Intro to computer 2', 'CMP121', 2), ('Intro to computer 3', 'CMP211', 2), ('Intro to computer 4', 'CMP121', 2), ('Intro to computer 5', 'CMP311', 2);
-`;
+// let add = `
+//   insert into courses (title, code, credit_load) values ('Intro to computer 1', 'CMP111', 2), ('Intro to computer 2', 'CMP121', 2), ('Intro to computer 3', 'CMP211', 2), ('Intro to computer 4', 'CMP121', 2), ('Intro to computer 5', 'CMP311', 2);
+// `;
 
   // connection.query(students, function(err, results, fields) {
   //   if (err) {
@@ -68,11 +68,11 @@ let add = `
   //   }
   // });
 
-  connection.query(add, function(err, results, fields) {
-    if (err) {
-      console.log(err.message);
-    }
-  });
+  // connection.query(add, function(err, results, fields) {
+  //   if (err) {
+  //     console.log(err.message);
+  //   }
+  // });
 
 
   console.log("Successfully connected to the database.");
