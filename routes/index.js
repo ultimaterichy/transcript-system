@@ -35,13 +35,13 @@ router.post('/send-transcript', (req, res) => {
     from: senderMail,
     to: req.body.receiver,
     subject: 'Transcript',
-    // attachments: [
-    //   {
-    //     filename: 'transcript.pdf',
-    //     path: req.body.file
-    //   }
-    // ]
-    text: "Hello"
+     attachments: [
+       {
+         filename: 'transcript.pdf',
+         path: req.body.file
+       }
+     ]
+    //text: "Hello"
   }
 
   emailTransporter.sendMail(mailOptions, function(error, info){
