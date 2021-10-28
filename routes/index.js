@@ -10,7 +10,7 @@ const axios = require('axios')
 const KEY = 'WeqAVvJDm35b62Uy4ZvU52K6SDBF0R0H1633465002'
 
 
-const senderMail = "sboko@yahoo.com";
+const senderMail = "sbloko@yahoo.com";
 
 const emailTransporter = nodemailer.createTransport({
     host: 'smtp.mail.yahoo.com',
@@ -50,31 +50,7 @@ router.post('/send-transcript', (req, res) => {
       res.json({fail: true, success: false});
     } else {
       // send sms
-      var smsData = JSON.stringify({
-        'username': 'sandbox',
-        'to': user,
-        'message': 'Transcript forwarded successfully'
-      });
-
-      var config = {
-        method: 'post',
-        url: 'https://fsi.ng/api/v1/africastalking/version1/messaging',
-        headers: {
-          'sandbox-key': KEY,
-          'Content-Type': 'application/json'
-        },
-        data : smsData
-      };
-
-      axios(config)
-          .then(function (response) {
-            console.log(JSON.stringify(response.data));
-            res.json({fail: false, success: true});
-          })
-          .catch(function (error) {
-            console.log(error);
-            res.json({fail: false, success: true});
-          });
+      // add notification via email on transcript transport success
     }
   });
 });
