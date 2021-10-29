@@ -35,7 +35,7 @@
                 <form method="POST" action="/add-transcript">
                     <div class="form-group align-items-end w-100">
                         <label for="session">Session</label>
-                        <select name="session" class="form-control w-25 float-right mb-3" >
+                        <select name="session" class="form-control w-25 float-right mb-3" required>
                             <% for( let index = 0; index < sessions.length; index++ ) { %>
                                 <option value="<%= sessions[index] %> "><%= sessions[index] %> </option>
                             <% } %>
@@ -56,7 +56,8 @@
                         <div class="col col-md-6">
                             <label for="grade">Grade</label>
                             <select name="grade" class="form-control" >
-                                <% for( let index = 1; index < 6; index++ ) { %>
+                                <option value="5" selected>5</option>
+                                <% for( let index = 4; index >= 1; index-- ) { %>
                                     <option value="<%= index %> "><%= index %></option>
                                 <% } %>
                             </select>

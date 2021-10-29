@@ -2,13 +2,9 @@ const sql = require("../database/db");
 
 // constructor
 const Course = function(course) {
-  this.email = course.email;
-  this.name = course.name;
-  this.matric = course.matric;
-  this.public_key = course.public_key,
-  this.private_key = course.private_key,
-  this.faculty = course.faculty,
-  this.department = course.department
+  this.code = course.code;
+  this.title = course.title;
+  this.credit_load = course.credit_load
 };
 
 Course.create = (newCourse, result) => {

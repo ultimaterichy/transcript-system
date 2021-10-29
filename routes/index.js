@@ -114,7 +114,7 @@ router.post('/add-student', (req, res) => {
 
 router.get('/add-transcript', (req, res) => {
   // sessions
-  const sessions = ['2011/2012', '2012/2013', '2013/2014', '2014/2015', '2015/2016', '2016/2017', '2017/2018', '2018/2019', '2019/2020', '2020/2021', '2021/2022', '2022/2023']
+  const sessions = ['2009/2010', '2010/2011', '2011/2012', '2012/2013', '2013/2014', '2014/2015', '2015/2016', '2016/2017', '2017/2018', '2018/2019', '2019/2020', '2020/2021', '2021/2022', '2022/2023']
   // load course
   Course.getAll((err, result) => {
     if(err == null){
@@ -129,7 +129,7 @@ router.get('/add-transcript', (req, res) => {
 router.post('/add-transcript', (req, res) => {
   console.log(req.body)
   // sessions
-  const sessions = ['2011/2012', '2012/2013', '2013/2014', '2014/2015', '2015/2016', '2016/2017', '2017/2018', '2018/2019', '2019/2020', '2020/2021', '2021/2022', '2022/2023']
+  const sessions = ['2009/2010', '2010/2011', '2011/2012', '2012/2013', '2013/2014', '2014/2015', '2015/2016', '2016/2017', '2017/2018', '2018/2019', '2019/2020', '2020/2021', '2021/2022', '2022/2023']
   // check for student existence
   Student.findByMatric(req.body.matric, (er, r) => {
     // if successful
@@ -200,5 +200,32 @@ router.post('/get-transcript', (req, res) => {
       })
     }
   })
+});
+
+router.post('/add-course', (req, res) => {
+  // user exist
+  Course.findByCode(req.body.code, (error, result) => {
+    if(result != null){
+      res.render('add-course', { title: 'Express', error: 'Course already exist', success: null });
+    } else{
+      // add
+      const c = new Course({
+        code: req.body.code,
+        title: req.body.title,
+        credit_load: req.body.credit_load
+      })
+      Course.create(c, (err, resu) => {
+        if(err != null){
+          res.render('add-course', { title: 'Express', error: 'Failed to add course', success: null });
+        } else{
+          res.render('add-course', { title: 'Express', error: null, success: 'Course added successfully' });
+        }
+      } );
+    }
+  })
+});
+
+router.get('/add-course', (req, res) => {
+  res.render('add-course', { title: 'Express', error: null, success: null });
 });
 module.exports = router;
