@@ -60,7 +60,7 @@ Course.findByCode = (courseCode, result) => {
   };
 
 Course.getAll = result => {
-  sql.query("SELECT * FROM courses", (err, res) => {
+  sql.query("SELECT * FROM courses order by title", (err, res) => {
     if (err) {
       console.log("error: ", err);
       result(null, err);
