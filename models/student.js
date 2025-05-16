@@ -1,4 +1,5 @@
-const sql = require("../database/db");
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 // constructor
 const Student = function(student) {
@@ -6,149 +7,158 @@ const Student = function(student) {
   this.name = student.name;
   this.phone = student.phone;
   this.matric = student.matric;
-  this.public_key = student.public_key,
-  this.private_key = student.private_key,
-  this.faculty = student.faculty,
-  this.department = student.department
+  this.publicKey = student.publicKey;
+  this.privateKey = student.privateKey;
+  this.faculty = student.faculty;
+  this.department = student.department;
 };
 
-Student.create = (newStudent, result) => {
-  sql.query("INSERT INTO students SET ?", newStudent, (err, res) => {
-    if (err) {
-      console.log("error: ", err);
-      result(err, null);
-      return;
-    }
-
-    console.log("created student: ", { id: res.insertId, ...newStudent });
-    result(null, { id: res.insertId, ...newStudent });
-  });
+Student.create = async (newStudent) => {
+  console.log("newStudent: ", newStudent);
+  try {
+    const student = await prisma.student.create({
+      data: {
+        email: newStudent.email,
+        name: newStudent.name,
+        phone: newStudent.phone,
+        matric: newStudent.matric,
+        publicKey: newStudent.publicKey,
+        privateKey: newStudent.privateKey,
+        faculty: newStudent.faculty,
+        department: newStudent.department
+      }
+    });
+    console.log("created student: ", student);
+    return student;
+  } catch (err) {
+    console.log("error: ", err);
+    throw err;
+  }
 };
 
-Student.findById = (studentId, result) => {
-  sql.query(`SELECT * FROM students WHERE id = ${studentId}`, (err, res) => {
-    if (err) {
-      console.log("error: ", err);
-      result(err, null);
-      return;
-    }
+Student.findById = async (studentId) => {
+  try {
+    const student = await prisma.student.findUnique({
+      where: { id: studentId }
+    });
 
-    if (res.length) {
-      console.log("found student: ", res[0]);
-      result(null, res[0]);
-      return;
+    if (student) {
+      console.log("found student: ", student);
+      return student;
     }
 
     // not found Student with the id
-    result({ kind: "not_found" }, null);
-  });
+    throw { kind: "not_found" };
+  } catch (err) {
+    console.log("error: ", err);
+    throw err;
+  }
 };
 
-
-Student.findByMatric = (studentMatric, result) => {
-    sql.query(`SELECT * FROM students WHERE matric = ?`,studentMatric, (err, res) => {
-      if (err) {
-        console.log("error: ", err);
-        result(err, null);
-        return;
-      }
-  
-      if (res.length) {
-        console.log("found student: ", res[0]);
-        result(null, res[0]);
-        return;
-      }
-  
-      // not found Student with the id
-      result({ kind: "not_found" }, null);
+Student.findByMatric = async (studentMatric) => {
+  try {
+    const student = await prisma.student.findUnique({
+      where: { matric: studentMatric }
     });
-  };
 
-  Student.findByPublicKey = (publicKey, result) => {
-    sql.query(`SELECT * FROM students WHERE public_key = ?`,publicKey, (err, res) => {
-      if (err) {
-        console.log("error: ", err);
-        result(err, null);
-        return;
-      }
-  
-      if (res.length) {
-        console.log("found student: ", res[0]);
-        result(null, res[0]);
-        return;
-      }
-  
-      // not found Student with the id
-      result({ kind: "not_found" }, null);
+    if (student) {
+      console.log("found student: ", student);
+      return student;
+    }
+
+    // not found Student with the matric
+    throw { kind: "not_found" };
+  } catch (err) {
+    console.log("error: ", err);
+    throw err;
+  }
+};
+
+Student.findByPublicKey = async (publicKey) => {
+  try {
+    const student = await prisma.student.findFirst({
+      where: { publicKey: publicKey }
     });
-  };
 
-Student.getAll = result => {
-  sql.query("SELECT * FROM students", (err, res) => {
-    if (err) {
-      console.log("error: ", err);
-      result(null, err);
-      return;
+    if (student) {
+      console.log("found student: ", student);
+      return student;
     }
 
-    console.log("students: ", res);
-    result(null, res);
-  });
+    // not found Student with the public key
+    throw { kind: "not_found" };
+  } catch (err) {
+    console.log("error: ", err);
+    throw err;
+  }
 };
 
-Student.updateById = (id, student, result) => {
-  sql.query(
-    "UPDATE students SET email = ?, name = ?, active = ? WHERE id = ?",
-    [student.email, student.name, student.active, id],
-    (err, res) => {
-      if (err) {
-        console.log("error: ", err);
-        result(null, err);
-        return;
-      }
-
-      if (res.affectedRows == 0) {
-        // not found Student with the id
-        result({ kind: "not_found" }, null);
-        return;
-      }
-
-      console.log("updated student: ", { id: id, ...student });
-      result(null, { id: id, ...student });
-    }
-  );
+Student.getAll = async () => {
+  try {
+    const students = await prisma.student.findMany();
+    console.log("students: ", students);
+    return students;
+  } catch (err) {
+    console.log("error: ", err);
+    throw err;
+  }
 };
 
-Student.remove = (id, result) => {
-  sql.query("DELETE FROM students WHERE id = ?", id, (err, res) => {
-    if (err) {
-      console.log("error: ", err);
-      result(null, err);
-      return;
-    }
+Student.updateById = async (id, student) => {
+  try {
+    const updatedStudent = await prisma.student.update({
+      where: { id: id },
+      data: {
+        email: student.email,
+        name: student.name,
+        phone: student.phone,
+        matric: student.matric,
+        publicKey: student.public_key,
+        privateKey: student.private_key,
+        faculty: student.faculty,
+        department: student.department
+      }
+    });
 
-    if (res.affectedRows == 0) {
+    console.log("updated student: ", updatedStudent);
+    return updatedStudent;
+  } catch (err) {
+    if (err.code === 'P2025') {
       // not found Student with the id
-      result({ kind: "not_found" }, null);
-      return;
+      throw { kind: "not_found" };
     }
+    console.log("error: ", err);
+    throw err;
+  }
+};
+
+Student.remove = async (id) => {
+  try {
+    const deletedStudent = await prisma.student.delete({
+      where: { id: id }
+    });
 
     console.log("deleted student with id: ", id);
-    result(null, res);
-  });
+    return deletedStudent;
+  } catch (err) {
+    if (err.code === 'P2025') {
+      // not found Student with the id
+      throw { kind: "not_found" };
+    }
+    console.log("error: ", err);
+    throw err;
+  }
 };
 
-Student.removeAll = result => {
-  sql.query("DELETE FROM students", (err, res) => {
-    if (err) {
-      console.log("error: ", err);
-      result(null, err);
-      return;
-    }
-
-    console.log(`deleted ${res.affectedRows} students`);
-    result(null, res);
-  });
+Student.removeAll = async () => {
+  try {
+    const deletedStudents = await prisma.student.deleteMany();
+    console.log(`deleted ${deletedStudents.count} students`);
+    return deletedStudents;
+  } catch (err) {
+    console.log("error: ", err);
+    throw err;
+  }
 };
 
 module.exports = Student;

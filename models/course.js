@@ -1,130 +1,129 @@
-const sql = require("../database/db");
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 // constructor
 const Course = function(course) {
   this.code = course.code;
   this.title = course.title;
-  this.credit_load = course.credit_load
+  this.credit_load = course.credit_load;
 };
 
-Course.create = (newCourse, result) => {
-  sql.query("INSERT INTO courses SET ?", newCourse, (err, res) => {
-    if (err) {
-      console.log("error: ", err);
-      result(err, null);
-      return;
-    }
-
-    console.log("created course: ", { id: res.insertId, ...newCourse });
-    result(null, { id: res.insertId, ...newCourse });
-  });
+Course.create = async (newCourse) => {
+  try {
+    const course = await prisma.course.create({
+      data: {
+        code: newCourse.code,
+        title: newCourse.title,
+        credit_load: newCourse.credit_load
+      }
+    });
+    console.log("created course: ", course);
+    return course;
+  } catch (err) {
+    console.log("error: ", err);
+    throw err;
+  }
 };
 
-Course.findById = (courseId, result) => {
-  sql.query(`SELECT * FROM courses WHERE id = ${courseId}`, (err, res) => {
-    if (err) {
-      console.log("error: ", err);
-      result(err, null);
-      return;
-    }
+Course.findById = async (courseId) => {
+  try {
+    const course = await prisma.course.findUnique({
+      where: { id: parseInt(courseId) }
+    });
 
-    if (res.length) {
-      console.log("found course: ", res[0]);
-      result(null, res[0]);
-      return;
+    if (course) {
+      console.log("found course: ", course);
+      return course;
     }
 
     // not found Course with the id
-    result({ kind: "not_found" }, null);
-  });
+    throw { kind: "not_found" };
+  } catch (err) {
+    console.log("error: ", err);
+    throw err;
+  }
 };
 
-
-Course.findByCode = (courseCode, result) => {
-    sql.query(`SELECT * FROM courses WHERE code = ?`,courseCode, (err, res) => {
-      if (err) {
-        console.log("error: ", err);
-        result(err, null);
-        return;
-      }
-  
-      if (res.length) {
-        console.log("found course: ", res[0]);
-        result(null, res[0]);
-        return;
-      }
-  
-      // not found Course with the id
-      result({ kind: "not_found" }, null);
+Course.findByCode = async (courseCode) => {
+  try {
+    const course = await prisma.course.findFirst({
+      where: { code: courseCode }
     });
-  };
 
-Course.getAll = result => {
-  sql.query("SELECT * FROM courses order by code", (err, res) => {
-    if (err) {
-      console.log("error: ", err);
-      result(null, err);
-      return;
+    if (course) {
+      console.log("found course: ", course);
+      return course;
     }
 
-    console.log("courses: ", res);
-    result(null, res);
-  });
+    // not found Course with the code
+    throw { kind: "not_found" };
+  } catch (err) {
+    console.log("error: ", err);
+    throw err;
+  }
 };
 
-Course.updateById = (id, course, result) => {
-  sql.query(
-    "UPDATE courses SET email = ?, name = ?, active = ? WHERE id = ?",
-    [course.email, course.name, course.active, id],
-    (err, res) => {
-      if (err) {
-        console.log("error: ", err);
-        result(null, err);
-        return;
-      }
-
-      if (res.affectedRows == 0) {
-        // not found Course with the id
-        result({ kind: "not_found" }, null);
-        return;
-      }
-
-      console.log("updated course: ", { id: id, ...course });
-      result(null, { id: id, ...course });
-    }
-  );
+Course.getAll = async () => {
+  try {
+    const courses = await prisma.course.findMany({
+      orderBy: { code: 'asc' }
+    });
+    console.log("courses: ", courses);
+    return courses;
+  } catch (err) {
+    console.log("error: ", err);
+    throw err;
+  }
 };
 
-Course.remove = (id, result) => {
-  sql.query("DELETE FROM courses WHERE id = ?", id, (err, res) => {
-    if (err) {
-      console.log("error: ", err);
-      result(null, err);
-      return;
-    }
-
-    if (res.affectedRows == 0) {
+Course.updateById = async (id, course) => {
+  try {
+    const updatedCourse = await prisma.course.update({
+      where: { id: parseInt(id) },
+      data: {
+        code: course.code,
+        title: course.title,
+        credit_load: course.credit_load
+      }
+    });
+    console.log("updated course: ", updatedCourse);
+    return updatedCourse;
+  } catch (err) {
+    if (err.code === 'P2025') {
       // not found Course with the id
-      result({ kind: "not_found" }, null);
-      return;
+      throw { kind: "not_found" };
     }
-
-    console.log("deleted course with id: ", id);
-    result(null, res);
-  });
+    console.log("error: ", err);
+    throw err;
+  }
 };
 
-Course.removeAll = result => {
-  sql.query("DELETE FROM courses", (err, res) => {
-    if (err) {
-      console.log("error: ", err);
-      result(null, err);
-      return;
+Course.remove = async (id) => {
+  try {
+    const deletedCourse = await prisma.course.delete({
+      where: { id: parseInt(id) }
+    });
+    console.log("deleted course with id: ", id);
+    return deletedCourse;
+  } catch (err) {
+    if (err.code === 'P2025') {
+      // not found Course with the id
+      throw { kind: "not_found" };
     }
+    console.log("error: ", err);
+    throw err;
+  }
+};
 
-    console.log(`deleted ${res.affectedRows} courses`);
-    result(null, res);
-  });
+Course.removeAll = async () => {
+  try {
+    const deletedCourses = await prisma.course.deleteMany();
+    console.log(`deleted ${deletedCourses.count} courses`);
+    return deletedCourses;
+  } catch (err) {
+    console.log("error: ", err);
+    throw err;
+  }
 };
 
 module.exports = Course;

@@ -1,109 +1,131 @@
+const { Web3 } = require('web3');
+require('dotenv').config();
 
-const Web3 = require('web3');
-const Provider = require('@truffle/hdwallet-provider');
-// const url = 'https://goerli.infura.io/v3/4a0069358ad94ee5952e5aa45a452404';
+const url = process.env.GANACHE_URL || 'http://127.0.0.1:7545';
+const privateKey = process.env.PRIVATE_KEY || '369f978d44b827f5213a97240d9cce735fad85a2edfd14d84057d349693bbc92';
+const address = process.env.ADDRESS || '0xd8B1717D637e81F592f4D1c7f8B934Eb5d614C82';
+const contract_addr = process.env.CONTRACT_ADDRESS || '0x78852c12fc08065e2eeD2CFeed622f372EaE3D8a';
 
-const url = 'wss://goerli.infura.io/ws/v3/4a0069358ad94ee5952e5aa45a452404';
-const privateKey = '369f978d44b827f5213a97240d9cce735fad85a2edfd14d84057d349693bbc92';
-const address = '0xd8B1717D637e81F592f4D1c7f8B934Eb5d614C82';
-const contract_addr = '0x78852c12fc08065e2eeD2CFeed622f372EaE3D8a';
+// Initialize Web3 with Ganache provider
+const web3 = new Web3(url);
 
-const provider = new Provider(privateKey, url);
-const web3 = new Web3(provider);
-
+// Add the private key to the wallet
+web3.eth.accounts.wallet.add(privateKey);
 
 // contract
 const MyContract = require('../build/contracts/Transcript.json');
 
+const MainApp = {
+  account: "",
+  web3Provider: web3,
+  contracts: {},
+  transcript: null,
 
-MainApp = {
+  load: async () => {
+    await MainApp.loadContracts();
+    await MainApp.loadAccount();
+  },
 
-    account: "",
-    web3Provider: provider,
-    contracts: {},
-    transcript: null,
+  // load user's account
+  loadAccount: async () => {
+    const accounts = await web3.eth.getAccounts();
+    MainApp.account = accounts[0];
+    console.log('Connected account:', MainApp.account);
+  },
 
-    load: async () => {
-        await MainApp.loadContracts();
-        await MainApp.loadAccount();
-    },
+  loadContracts: async () => {
+    try {
+      MainApp.contracts.Transcript = new web3.eth.Contract(
+        MyContract.abi,
+        contract_addr
+      );
+      console.log('Contract loaded successfully');
+    } catch (error) {
+      console.error('Error loading contract:', error);
+      throw error;
+    }
+  },
 
-
-    // load user's account
-    loadAccount: async () => {
-        MainApp.account = await web3.eth.getAccounts();
-        console.log(MainApp.account[0]);
-    },
-
-    loadContracts: async () => {
-      
-        MainApp.contracts.Transcript = new web3.eth.Contract(
-            MyContract.abi,
-            contract_addr
-        );
-        // MainApp.contracts.Transcript.setProvider(MainApp.web3Provider);
-        // MainApp.transcript = await MainApp.contracts.Transcript.deployed();
-        // console.log(trans); 
-    },
-
-    // creating a new student
-    createStudent: async (student) => {
+  // creating a new student
+  createStudent: async (student) => {
+    try {
       // create an address
-      const account = await web3.eth.accounts.create()
-      let nadrr = account.address; // public key
-      let y = account.privateKey;
-      
-      // create student
-      const we = await MainApp.contracts.Transcript.methods.createStudent(
+      const account = web3.eth.accounts.create();
+      const publicKey = account.address;
+      const privateKey = account.privateKey;
+      // console.log(publicKey, privateKey);
+      // create student on blockchain
+      const tx = await MainApp.contracts.Transcript.methods.createStudent(
         student.email,
         student.name,
         student.matric,
-        nadrr,
+        publicKey,
         student.faculty,
         student.department,
         student.duration,
         student.gender
-      ).send({from: address});
-      // console.log(we);
-      // return private key and public key
-      console.log('returning');
-      return account;
-    },
+      ).send({ from: address });
 
-    createTranscript: async (data) => {
-      // make sure student exists on the network
-      const we = await MainApp.contracts.Transcript.methods.createTranscript(
-        data.student.public_key,
+      // console.log('Student created successfully:', tx);
+      return { address: publicKey, privateKey };
+    } catch (error) {
+      console.error('Error creating student:', error);
+      throw error;
+    }
+  },
+
+  createTranscript: async (data) => {
+    try {
+      const tx = await MainApp.contracts.Transcript.methods.createTranscript(
+        data.student.publicKey,
         data.session,
         data.course.code,
         data.course.title,
         data.course.credit_load,
         data.grade,
         data.remark
-      ).send({from: address});
-      // get student's key
-      // create transcript
-    },
+      ).send({ from: address });
 
-    getTranscript: async (key, email) => {
-      const ctr = await MainApp.contracts.Transcript.methods.counter(key).call();
-      const user = await MainApp.contracts.Transcript.methods.students(key).call();
-      const res = [];
-      for (let i = 0; i < ctr; i++){
-        res.push(await MainApp.contracts.Transcript.methods.results(key, i).call());
-      }
-
-      console.log(user)
-
-
-      return {user: user, data: res, receiver: email};
-    },
-
-    test: async () => {
-      const we = await MainApp.contracts.Transcript.methods.counter('0x9BFC38692ac94894c1bC0F9395FF0e3D91629543').call();
-      console.log(we);
+      console.log('Transcript created successfully:', tx);
+      return tx;
+    } catch (error) {
+      console.error('Error creating transcript:', error);
+      throw error;
     }
-}
+  },
 
-MainApp.loadContracts();
+  getTranscript: async (key, email) => {
+    try {
+      const counter = await MainApp.contracts.Transcript.methods.counter(key).call();
+      const user = await MainApp.contracts.Transcript.methods.students(key).call();
+      
+      const results = await Promise.all(
+        Array.from({ length: Number(counter) }, (_, i) => 
+          MainApp.contracts.Transcript.methods.results(key, i).call()
+        )
+      );
+
+      return { user, data: results, receiver: email };
+    } catch (error) {
+      console.error('Error getting transcript:', error);
+      throw error;
+    }
+  },
+
+  test: async () => {
+    try {
+      const counter = await MainApp.contracts.Transcript.methods.counter(
+        '0x9BFC38692ac94894c1bC0F9395FF0e3D91629543'
+      ).call();
+      console.log('Test counter:', counter);
+    } catch (error) {
+      console.error('Test error:', error);
+      throw error;
+    }
+  }
+};
+
+// Initialize the app
+MainApp.loadContracts().catch(console.error);
+
 module.exports = MainApp;

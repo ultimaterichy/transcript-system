@@ -1,231 +1,288 @@
-var express = require('express');
-var router = express.Router();
-var MainApp = require('../system/main');
-const Student = require('../models/student')
+const express = require('express');
+const router = express.Router();
+const MainApp = require('../system/main');
+const Student = require('../models/student');
 const Course = require('../models/course');
 const nodemailer = require("nodemailer");
-const axios = require('axios')
+const axios = require('axios');
+require('dotenv').config();
 
-
-const KEY = 'WeqAVvJDm35b62Uy4ZvU52K6SDBF0R0H1633465002'
-
-
-const senderMail = "sbloko@yahoo.com";
+const KEY = process.env.API_KEY || 'WeqAVvJDm35b62Uy4ZvU52K6SDBF0R0H1633465002';
+const senderMail = process.env.EMAIL_USER || "richarddanladi7@gmail.com";
 
 const emailTransporter = nodemailer.createTransport({
-    host: 'smtp.mail.yahoo.com',
-    port: 465,
-    service:'yahoo',
-    secure: false,
-    auth: {
-        user: senderMail,
-        pass: 'wgfkakqprjnnqdgp'
-    },
-    logger: true 
+  host: 'smtp.gmail.com',
+  port: 465,
+  service: 'gmail',
+  secure: true,
+  auth: {
+    user: senderMail,
+    pass: process.env.EMAIL_PASSWORD || 'jwochznpdicmzr'
+  },
+  logger: true 
 });
 
+// Home route
 router.get('/', (req, res) => {
   res.render('add-student', { title: 'Express', error: null, success: null });
 });
 
-router.post('/send-transcript', (req, res) => {
-  var user = req.body.user;
-  console.log(user);
-  let mailOptions = {
-    from: senderMail,
-    to: req.body.receiver,
-    subject: 'Transcript',
-     attachments: [
-       {
-         filename: 'transcript.pdf',
-         path: req.body.file
-       }
-     ]
-    //text: "Hello"
-  }
+// Send transcript route
+router.post('/send-transcript', async (req, res) => {
+  try {
+    const mailOptions = {
+      from: senderMail,
+      to: req.body.receiver,
+      subject: 'Transcript',
+      attachments: [
+        {
+          filename: 'transcript.pdf',
+          path: req.body.file
+        }
+      ]
+    };
 
-  emailTransporter.sendMail(mailOptions, function(error, info){
-    if (error) {
-      console.log(error)
-      res.json({fail: true, success: false});
-    } else {
-      // send sms
-      // add notification via email on transcript transport success
-    }
-  });
+    await emailTransporter.sendMail(mailOptions);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error sending transcript:', error);
+    res.json({ success: false, error: error.message });
+  }
 });
 
-
-/* GET home page. */
-router.get('/add-student', function(req, res, next) {
-  // MainApp.test();
+// Add student routes
+router.get('/add-student', (req, res) => {
   res.render('add-student', { title: 'Express', error: null, success: null });
 });
 
-router.post('/add-student', (req, res) => {
-  // make sure user doesn't exist
-  Student.findByMatric(req.body.matric, (err, result) => {
-    // if found, return an error
-    if(result != null){
-      res.render('add-student', { title: 'Express', error: "Student already exist", success: null });
-    } else{
-      MainApp.createStudent(req.body).then(resp => {
-        // create to a student instance
-        console.log(resp);
-        const student = new Student({
-          email: req.body.email,
-          name: req.body.name,
-          phone: req.body.phone,
-          matric: req.body.matric,
-          faculty: req.body.faculty,
-          department: req.body.department,
-          private_key: resp.privateKey,
-          public_key: resp.address
-        });
-        
-        // store
-        console.log('saving to db')
-        Student.create(student, (err, result) => {
-          if(result != null){
-            let mailOptions = {
-              from: senderMail,
-              to: result.email,
-              subject: 'Transcript',
-              text: 'Public key is: '+result.public_key
-            }
-            emailTransporter.sendMail(mailOptions, function(error, info){
-              if (error) {
-                res.render('add-student', { title: 'Express', error: err, success: result });
-              } else {
-                res.render('add-student', { title: 'Express', error: err, success: result });
-              }
-            });
-          } else{
-            res.render('add-student', { title: 'Express', error: err, success: result });
-          }
-          
-        });
-      })
+router.post('/add-student', async (req, res) => {
+  try {
+    let existingStudent;
+    try {
+      existingStudent = await Student.findByMatric(req.body.matric);
+    } catch (err) {
+      if (err.kind === "not_found") {
+        existingStudent = null;
+      } else {
+        throw err;
+      }
     }
-  });
-  
+    
+    if (existingStudent) {
+      return res.render('add-student', { 
+        title: 'Express', 
+        error: "Student already exists", 
+        success: null 
+      });
+    }
+
+    const resp = await MainApp.createStudent(req.body);
+    console.log(resp)
+    const student = new Student({
+      email: req.body.email,
+      name: req.body.name,
+      phone: req.body.phone,
+      matric: req.body.matric,
+      faculty: req.body.faculty,
+      department: req.body.department,
+      privateKey: resp.privateKey,
+      publicKey: resp.address
+    });
+
+    const result = await Student.create(student);
+    
+    if (result) {
+      const mailOptions = {
+        from: senderMail,
+        to: result.email,
+        subject: 'Transcript',
+        text: `Public key is: ${result.publicKey}`
+      };
+
+      await emailTransporter.sendMail(mailOptions);
+      res.render('add-student', { 
+        title: 'Express', 
+        error: null, 
+        success: result 
+      });
+    }
+  } catch (error) {
+    console.error('Error adding student:', error);
+    res.render('add-student', { 
+      title: 'Express', 
+      error: error.message, 
+      success: null 
+    });
+  }
 });
 
+// Add transcript routes
+router.get('/add-transcript', async (req, res) => {
+  const sessions = [
+    '2001/2002', '2002/2003', '2003/2004', '2004/2005', '2005/2006',
+    '2006/2007', '2007/2008', '2008/2009', '2009/2010', '2010/2011',
+    '2011/2012', '2012/2013', '2013/2014', '2014/2015', '2015/2016',
+    '2016/2017', '2017/2018', '2018/2019', '2019/2020', '2020/2021',
+    '2021/2022', '2022/2023'
+  ];
 
-router.get('/add-transcript', (req, res) => {
-  // sessions
-  const sessions = ['2001/2002','2002/2003','2003/2004','2004/2005','2005/2006','2006/2007','2007/2008','2008/2009','2009/2010','2010/2011','2011/2012', '2012/2013', '2013/2014', '2014/2015', '2015/2016', '2016/2017', '2017/2018', '2018/2019', '2019/2020', '2020/2021', '2021/2022', '2022/2023']
-  // load course
-  Course.getAll((err, result) => {
-    if(err == null){
-      res.render('add-transcript', { title: 'Express', error: null, success: null, courses: result, sessions: sessions });
-    } else{
-      res.render('add-transcript', { title: 'Express', error: null, success: null, courses: [], sessions: sessions });
-    }
-  })
-  
+  try {
+    const courses = await Course.getAll();
+    res.render('add-transcript', { 
+      title: 'Express', 
+      error: null, 
+      success: null, 
+      courses, 
+      sessions 
+    });
+  } catch (error) {
+    res.render('add-transcript', { 
+      title: 'Express', 
+      error: null, 
+      success: null, 
+      courses: [], 
+      sessions 
+    });
+  }
 });
 
-router.post('/add-transcript', (req, res) => {
-  console.log(req.body)
-  // sessions
-  const sessions = ['2001/2002','2002/2003','2003/2004','2004/2005','2005/2006','2006/2007','2007/2008','2008/2009','2009/2010','2010/2011','2011/2012', '2012/2013', '2013/2014', '2014/2015', '2015/2016', '2016/2017', '2017/2018', '2018/2019', '2019/2020', '2020/2021', '2021/2022', '2022/2023']
-  // check for student existence
-  Student.findByMatric(req.body.matric, (er, r) => {
-    // if successful
-    if(r != null){
-      // check for course existence
-      Course.findById(req.body.course, (err, result) => {
-        // if found
-        if(result != null){
-          // create contract
-          MainApp.createTranscript({student: r, course: result, session: req.body.session, grade: req.body.grade, remark: req.body.remark }).then(() => {
-            // success
-            // load course
-            Course.getAll((err, result) => {
-              if(err == null){
-                console.log("Done...");
-                res.render('add-transcript', { title: 'Express', error: null, success: 'Operation was successful', courses: result, sessions: sessions });
-              } else{
+router.post('/add-transcript', async (req, res) => {
+  const sessions = [
+    '2001/2002', '2002/2003', '2003/2004', '2004/2005', '2005/2006',
+    '2006/2007', '2007/2008', '2008/2009', '2009/2010', '2010/2011',
+    '2011/2012', '2012/2013', '2013/2014', '2014/2015', '2015/2016',
+    '2016/2017', '2017/2018', '2018/2019', '2019/2020', '2020/2021',
+    '2021/2022', '2022/2023'
+  ];
 
-                res.render('add-transcript', { title: 'Express', error: null, success: 'Operation was successful', courses: [], sessions: sessions });
-              }
-            })
-          });
-
-        } else{
-          // return with error
-          // load course
-          Course.getAll((err, result) => {
-            if(err == null){
-              res.render('add-transcript', { title: 'Express', error: "Course not found", success: null, courses: result, sessions: sessions });
-            } else{
-              res.render('add-transcript', { title: 'Express', error: "Course not found", success: null, courses: [], sessions: sessions });
-            }
-          })
-        }
-      })
-    } else{
-      // return with error
-      // load course
-      Course.getAll((err, result) => {
-        if(err == null){
-          res.render('add-transcript', { title: 'Express', error: "Student not found", success: null, courses: result, sessions: sessions });
-        } else{
-          res.render('add-transcript', { title: 'Express', error: "Student not found", success: null, courses: [], sessions: sessions });
-        }
-      })
+  try {
+    const student = await Student.findByMatric(req.body.matric);
+    if (!student) {
+      const courses = await Course.getAll();
+      return res.render('add-transcript', { 
+        title: 'Express', 
+        error: "Student not found", 
+        success: null, 
+        courses, 
+        sessions 
+      });
     }
-  });
+
+    const course = await Course.findById(req.body.course.replace(/\s/g, ''));
+    if (!course) {
+      const courses = await Course.getAll();
+      return res.render('add-transcript', { 
+        title: 'Express', 
+        error: "Course not found", 
+        success: null, 
+        courses, 
+        sessions 
+      });
+    }
+
+    await MainApp.createTranscript({
+      student,
+      course,
+      session: req.body.session,
+      grade: req.body.grade,
+      remark: req.body.remark
+    });
+
+    const courses = await Course.getAll();
+    res.render('add-transcript', { 
+      title: 'Express', 
+      error: null, 
+      success: 'Operation was successful', 
+      courses, 
+      sessions 
+    });
+  } catch (error) {
+    console.error('Error adding transcript:', error);
+    const courses = await Course.getAll();
+    res.render('add-transcript', { 
+      title: 'Express', 
+      error: error.message, 
+      success: null, 
+      courses, 
+      sessions 
+    });
+  }
 });
 
+// Get transcript routes
 router.get('/get-transcript', (req, res) => {
   res.render('get-transcript', { title: 'Express', error: null, success: null });
 });
 
-router.post('/get-transcript', (req, res) => {
-  // user exist
-  Student.findByPublicKey(req.body.publicKey, (error, result) => {
-    if(error != null){
-      res.render('get-transcript', { title: 'Express', error: 'Invalid key', success: null });
-    } else{
-      // get transcript
-      MainApp.getTranscript(req.body.publicKey, req.body.institutionAddress).then(data => {
-        // res.send(data);
-        console.log(result.phone);
-        res.render('transcript-view', { title: 'Express', error: null, success: null, transcripts: data, phone: result.phone });
-      }).catch(err => {
-        console.log(err)
-        res.render('get-transcript', { title: 'Express', error: 'No Transcript Found', success: null });
-      })
+router.post('/get-transcript', async (req, res) => {
+  try {
+    const student = await Student.findByPublicKey(req.body.publicKey);
+    if (!student) {
+      return res.render('get-transcript', { 
+        title: 'Express', 
+        error: 'Invalid key', 
+        success: null 
+      });
     }
-  })
+
+    const data = await MainApp.getTranscript(req.body.publicKey, req.body.institutionAddress);
+    res.render('transcript-view', { 
+      title: 'Express', 
+      error: null, 
+      success: null, 
+      transcripts: data, 
+      phone: student.phone 
+    });
+  } catch (error) {
+    console.error('Error getting transcript:', error);
+    res.render('get-transcript', { 
+      title: 'Express', 
+      error: 'No Transcript Found', 
+      success: null 
+    });
+  }
 });
 
-router.post('/add-course', (req, res) => {
-  // user exist
-  Course.findByCode(req.body.code, (error, result) => {
-    if(result != null){
-      res.render('add-course', { title: 'Express', error: 'Course already exist', success: null });
-    } else{
-      // add
-      const c = new Course({
-        code: req.body.code,
-        title: req.body.title,
-        credit_load: req.body.credit_load
-      })
-      Course.create(c, (err, resu) => {
-        if(err != null){
-          res.render('add-course', { title: 'Express', error: 'Failed to add course', success: null });
-        } else{
-          res.render('add-course', { title: 'Express', error: null, success: 'Course added successfully' });
-        }
-      } );
-    }
-  })
-});
-
+// Add course routes
 router.get('/add-course', (req, res) => {
   res.render('add-course', { title: 'Express', error: null, success: null });
 });
+
+router.post('/add-course', async (req, res) => {
+  try {
+    const existingCourse = await Course.findByCode(req.body.code);
+    if (existingCourse) {
+      return res.render('add-course', { 
+        title: 'Express', 
+        error: 'Course already exists', 
+        success: null 
+      });
+    }
+
+    const course = new Course({
+      code: req.body.code,
+      title: req.body.title,
+      credit_load: req.body.credit_load
+    });
+
+    const result = await Course.create(course);
+    if (!result) {
+      throw new Error('Failed to add course');
+    }
+
+    res.render('add-course', { 
+      title: 'Express', 
+      error: null, 
+      success: 'Course added successfully' 
+    });
+  } catch (error) {
+    console.error('Error adding course:', error);
+    res.render('add-course', { 
+      title: 'Express', 
+      error: error.message, 
+      success: null 
+    });
+  }
+});
+
 module.exports = router;

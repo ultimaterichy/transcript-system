@@ -5,25 +5,39 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
+    "start": "node app.js",
+    "ganache": "npx ganache --port 7545",
+    "compile": "truffle compile --all",
+    "migrate": "truffle migrate",
+    "test:contracts": "truffle test",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "dev": "concurrently \"npm run ganache\" \"npm run start\""
   },
-
   "engines": {
-    "node": "16.11.1"
+    "node": ">=16.11.1"
   },
   "dependencies": {
-    "@truffle/hdwallet-provider": "^1.5.0",
-    "axios": "^0.23.0",
-    "body-parser": "^1.19.0",
-    "cookie-parser": "~1.4.4",
-    "debug": "~2.6.9",
-    "ejs": "~2.6.1",
-    "express": "~4.16.1",
-    "http-errors": "~1.6.3",
-    "morgan": "~1.9.1",
-    "mysql": "^2.18.1",
-    "nodemailer": "^6.7.0",
-    "truffle-contract": "^4.0.31",
-    "web3": "^1.5.2"
+    "@prisma/client": "^5.10.2",
+    "@truffle/hdwallet-provider": "^2.0.16",
+    "axios": "^1.6.7",
+    "body-parser": "^2.2.0",
+    "cookie-parser": "^1.4.6",
+    "debug": "^4.3.4",
+    "ejs": "^3.1.9",
+    "express": "^5.1.0",
+    "http-errors": "^2.0.0",
+    "morgan": "^1.10.0",
+    "mysql2": "^3.9.1",
+    "nodemailer": "^6.9.9",
+    "web3": "^4.16.0"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "^5.0.1",
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.4.1",
+    "ganache": "^7.9.2",
+    "prisma": "^5.10.2",
+    "truffle": "5.11.5"
   }
 }
